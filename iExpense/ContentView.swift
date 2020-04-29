@@ -7,6 +7,48 @@
 //
 
 import SwiftUI
+struct BelowTenStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.headline)
+            .foregroundColor(.green)
+    }
+}
+struct BelowHundredStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.headline)
+            .foregroundColor(.gray)
+    }
+}
+struct OverHundredStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.headline)
+            .foregroundColor(.red)
+    }
+}
+extension View {
+    func belowTenStyle() -> some View {
+        self.modifier(BelowTenStyle())
+    }
+    func belowHundredStyle() -> some View {
+        self.modifier(BelowHundredStyle())
+    }
+    func overHundredStyle() -> some View {
+        self.modifier(OverHundredStyle())
+    }
+    func amount_modier(item: ExpenseItem) -> some View {
+        switch item.amount {
+        case 0..<10:
+            return AnyView(Text("\(item.amount)").belowTenStyle())
+        case 10..<100:
+            return AnyView(Text("\(item.amount)").belowHundredStyle())
+        default:
+            return AnyView(Text("\(item.amount)").overHundredStyle())
+        }
+    }
+}
 class Expenses: ObservableObject{
     @Published var items = [ExpenseItem](){
         didSet{
@@ -56,19 +98,20 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        Text("Php\(i.amount)")
+                        self.amount_modier(item: i)
                     }
                 }
                 .onDelete(perform: self.removeItem)
             }
             .navigationBarTitle("iExpense")
-            .navigationBarItems(trailing:
+            .navigationBarItems(leading: EditButton(), trailing:
                 Button(action: {
                     self.show_AddExpense = true
+                    
                 }){
                     Image(systemName: "plus")
-                }
-            )
+                    
+            })
             .sheet(isPresented: $show_AddExpense){
                 AddView(expenses: self.expenses)
             }
@@ -77,6 +120,7 @@ struct ContentView: View {
     func removeItem(at offsets: IndexSet){
         expenses.items.remove(atOffsets: offsets)
     }
+    
 }
 
 struct ContentView_Previews: PreviewProvider {
